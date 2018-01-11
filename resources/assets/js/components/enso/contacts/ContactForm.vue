@@ -1,145 +1,33 @@
 <template>
+    <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+        <div class="modal is-active">
+            <div class="modal-background"></div>
+            <div class="modal-content" style="width:80%">
+                <div class="box">
+                    <span class="icon is-pulled-right">
+                      <i class="fa fa-times close-button" @click="$emit('form-close')"></i>
+                    </span>
 
-    <modal :show="show"
-        card
-        @commit-action="save()">
-        <span slot="header">
-            <span class="icon">
-                <i class="fa fa-address-card-o"></i>
-            </span>
-            <span v-if="editMode">{{ __('Edit') }}</span>
-            <span v-else>{{ __('Create') }}</span>
-        </span>
-        <span slot="body">
-            <div class="field">
-                <label class="label">{{ __('First Name') }}</label>
-                <p v-if="errors.first_name"
-                    class="help is-danger is-pulled-right">
-                    {{ errors.first_name[0] }}
-                </p>
-                <div class="control has-icons-right">
-                    <input class="input"
-                        :class="{ 'is-danger': errors.first_name }"
-                        v-model="contact.first_name"
-                        type="text">
-                    <span class="icon is-small is-right"
-                        v-if="errors.first_name">
-                        <i class="fa fa-warning"></i>
-                    </span>
+                    <vue-form class="box"
+                              :data="form">
+                    </vue-form>
                 </div>
             </div>
-            <div class="field">
-                <label class="label">{{ __('Last Name') }}</label>
-                <p v-if="errors.last_name"
-                    class="help is-danger is-pulled-right">
-                    {{ errors.last_name[0] }}
-                </p>
-                <div class="control has-icons-right">
-                    <input class="input"
-                        :class="{ 'is-danger': errors.last_name }"
-                        v-model="contact.last_name"
-                        type="text">
-                    <span class="icon is-small is-right"
-                        v-if="errors.last_name">
-                        <i class="fa fa-warning"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">{{ __('Email') }}</label>
-                <p v-if="errors.email"
-                    class="help is-danger is-pulled-right">
-                    {{ errors.email[0] }}
-                </p>
-                <div class="control has-icons-right">
-                    <input class="input"
-                        :class="{ 'is-danger': errors.email }"
-                        v-model="contact.email"
-                        type="text">
-                    <span class="icon is-small is-right"
-                        v-if="errors.email">
-                        <i class="fa fa-warning"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">{{ __('Phone') }}</label>
-                <p v-if="errors.phone"
-                    class="help is-danger is-pulled-right">
-                    {{ errors.phone[0] }}
-                </p>
-                <div class="control has-icons-right">
-                    <input class="input"
-                        :class="{ 'is-danger': errors.phone }"
-                        v-model="contact.phone"
-                        type="text">
-                    <span class="icon is-small is-right"
-                        v-if="errors.phone">
-                        <i class="fa fa-warning"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">{{ __('Observations') }}</label>
-                <p v-if="errors.obs"
-                    class="help is-danger is-pulled-right">
-                    {{ errors.obs[0] }}
-                </p>
-                <div class="control has-icons-right">
-                    <input class="input"
-                        :class="{ 'is-danger': errors.obs }"
-                        v-model="contact.obs"
-                        type="text">
-                    <span class="icon is-small is-right"
-                        v-if="errors.obs">
-                        <i class="fa fa-warning"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">{{ __('Active') }}</label>
-                <p v-if="errors.is_active"
-                    class="help is-danger is-pulled-right">
-                    {{ errors.is_active[0] }}
-                </p>
-                <span>
-                    <input id="contact_is_active"
-                        class="toggle"
-                        v-model="contact.is_active"
-                        type="checkbox">
-                    <label for="contact_is_active" class="toggle-input"><i></i></label>
-                </span>
-            </div>
-        </span>
-        <span slot="footer">
-            <button class="button"
-                @click="$emit('closed')">
-                {{ __("Cancel") }}
-            </button>
-            <button class="button is-success"
-                @click="save()">
-                {{ __("Save") }}
-            </button>
-        </span>
-    </modal>
-
+            <button class="modal-close is-large" aria-label="close"></button>
+        </div>
+    </transition>
 </template>
 
 <script>
 
-import { mapGetters } from 'vuex';
-import Modal from '../bulma/Modal.vue';
+import VueForm from '../vueforms/VueForm.vue';
 
 export default {
     name: 'ContactForm',
 
-    components: { Modal },
+    components: { VueForm },
 
     props: {
-        show: {
-            type: Boolean,
-            required: true,
-        },
         id: {
             default: null,
         },
@@ -147,52 +35,35 @@ export default {
             type: String,
             default: '',
         },
-        contact: {
-            type: Object,
+        action: {
+            type: String,
             required: true,
-        },
-    },
-
-    computed: {
-        ...mapGetters('locale', ['__']),
-        editMode() {
-            return !!this.contact.id;
         },
     },
 
     data() {
         return {
-            errors: {},
+            form: {
+                type: Object,
+                default: null,
+            },
         };
     },
 
     methods: {
-        save() {
-            return this.editMode ? this.update() : this.store();
-        },
-        store() {
-            axios.post(route('core.contacts.store', [], false), {
-                contact: this.contact, id: this.id, type: this.type,
-            }).then(({ data }) => {
-                this.$emit('store', data);
+        getEditForm(address) {
+            axios.get(route('core.contacts.edit', address.id, false)).then(({ data }) => {
+                this.$emit('form-loaded', data);
+                this.form = data.editForm;
             }).catch((error) => {
-                if (error.response.status === 422) {
-                    this.errors = error.response.data.errors;
-                }
-
                 this.handleError(error);
             });
         },
-        update() {
-            axios.patch(route('core.contacts.update', this.contact.id, false), {
-                contact: this.contact, id: this.id, type: this.type,
-            }).then(() => {
-                this.$emit('update', this.contact);
+        getCreateForm() {
+            const params = { contactable_id: this.id, contactable_type: this.type };
+            axios.get(route('core.contacts.create', params, false)).then(({ data }) => {
+                this.form = data.createForm;
             }).catch((error) => {
-                if (error.response.status === 422) {
-                    this.errors = error.response.data.errors;
-                }
-
                 this.handleError(error);
             });
         },
@@ -200,3 +71,47 @@ export default {
 };
 
 </script>
+
+<style>
+    .close-button {
+        z-index: 1;
+        position: relative;
+        cursor: hand;
+    }
+
+    .modal.is-active {
+        z-index: 1100;
+    }
+
+    .address-modal-mask {
+        position: fixed;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, .5);
+        transition: opacity .3s ease;
+    }
+
+    .address-modal-container {
+        min-width: 250px;
+        min-height: 415px;
+        width:80%;
+        max-height: 90%;
+        overflow-y: auto;
+        margin: 0 auto;
+        padding: 0;
+        color: #3c3a3a;
+        background-color: #fff;
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+        transition: all .3s ease;
+    }
+
+    .address-modal-container .box {
+        margin-bottom: 0;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+</style>

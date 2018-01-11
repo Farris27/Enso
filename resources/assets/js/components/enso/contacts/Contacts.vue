@@ -31,11 +31,12 @@
             </div>
             <contact-form :show="showForm"
                 v-if="showForm"
-                :contact="emptyContact()"
+                :action="action"
                 :type="type"
                 :id="id"
-                @closed="showForm=false"
-                @store="add($event);showForm=false">
+                @form-close="showForm=false"
+                @destroy="get(); showForm=false"
+                @submit="get();showForm=false">
             </contact-form>
         </div>
     </card>
@@ -119,6 +120,7 @@ export default {
                 this.$refs.card.toggle();
             }
 
+            this.action = 'create';
             this.showForm = true;
         },
         add(contact) {
