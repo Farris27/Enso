@@ -8,6 +8,7 @@
         :open="open"
         ref="addressCard"
         @query-update="query = $event"
+        <!--@expand="!contacts.length ? $refs.card.collapse() : null"-->
         :badge="addresses.length"
         :controls="1">
 

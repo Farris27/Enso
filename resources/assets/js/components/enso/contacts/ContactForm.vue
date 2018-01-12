@@ -5,12 +5,18 @@
             <div class="modal-content" style="width:80%">
                 <div class="box">
                     <span class="icon is-pulled-right">
-                      <i class="fa fa-times close-button" @click="$emit('form-close')"></i>
+                      <i class="fa fa-times close-button" @click="close"></i>
                     </span>
 
-                    <vue-form class="box"
-                              :data="form">
+                    <vue-form
+                            @destroy="$emit('destroy')"
+                            @submit="$emit('submit')"
+                            v-if="form"
+                            class="box"
+                            :params="params"
+                            :data="form">
                     </vue-form>
+
                 </div>
             </div>
             <button class="modal-close is-large" aria-label="close"></button>
@@ -39,20 +45,34 @@ export default {
             type: String,
             required: true,
         },
+        contactId: {
+            type: Number,
+            default: null,
+        },
     },
 
     data() {
         return {
-            form: {
-                type: Object,
-                default: null,
-            },
+            form: null,
         };
     },
 
+    computed: {
+        params() {
+            return {
+                id: this.id,
+                type: this.type,
+            };
+        },
+    },
+
     methods: {
-        getEditForm(address) {
-            axios.get(route('core.contacts.edit', address.id, false)).then(({ data }) => {
+        close() {
+            this.form = null;
+            this.$emit('form-close');
+        },
+        getEditForm() {
+            axios.get(route('core.contacts.edit', this.contactId, false)).then(({ data }) => {
                 this.$emit('form-loaded', data);
                 this.form = data.editForm;
             }).catch((error) => {
@@ -68,6 +88,12 @@ export default {
             });
         },
     },
+
+    mounted() {
+        this.$nextTick(() => {
+            this.action === 'create' ? this.getCreateForm() : this.getEditForm();
+        });
+    },
 };
 
 </script>
@@ -81,37 +107,5 @@ export default {
 
     .modal.is-active {
         z-index: 1100;
-    }
-
-    .address-modal-mask {
-        position: fixed;
-        z-index: 9998;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, .5);
-        transition: opacity .3s ease;
-    }
-
-    .address-modal-container {
-        min-width: 250px;
-        min-height: 415px;
-        width:80%;
-        max-height: 90%;
-        overflow-y: auto;
-        margin: 0 auto;
-        padding: 0;
-        color: #3c3a3a;
-        background-color: #fff;
-        border-radius: 2px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
-        transition: all .3s ease;
-    }
-
-    .address-modal-container .box {
-        margin-bottom: 0;
-        padding-left: 5px;
-        padding-right: 5px;
     }
 </style>
