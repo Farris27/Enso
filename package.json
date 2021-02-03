@@ -73,7 +73,7 @@
         "v-tooltip": "^2.0.0-rc.30",
         "vue": "^2.5.13",
         "vue-multiselect": "^2.0.8",
-        "vue-router": "^2.8.1",
+        "vue-router": "^3.5.1",
         "vuex": "^2.5.0",
         "zxcvbn": "^4.4.2"
     }
